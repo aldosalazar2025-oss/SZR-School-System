@@ -4,6 +4,7 @@ import '../auth/auth_repository.dart';
 import 'manual_screen.dart';
 import 'reports_screen.dart';
 import 'schedules_screen.dart';
+import 'contact_screen.dart';
 import 'customization_screen.dart';
 import 'scan_screen.dart';
 import 'staff_screen.dart';
@@ -24,24 +25,25 @@ class AppSidebar extends StatelessWidget {
   final VoidCallback? onReload;
 
   static Color get cyan => P.accent;
-  static const red = Color(0xFFFF5275);
+  static Color get red => P.err;
 
-  List<(IconData, String)> get _items => user.isAdmin
-      ? const [
-          (Icons.home_rounded, 'Panel principal'),
-          (Icons.school, 'Estudiantes'),
-          (Icons.people, 'Personal'),
-          (Icons.qr_code_scanner, 'Escanear QR'),
-          (Icons.edit_note, 'Registro manual'),
-          (Icons.assessment, 'Reportes'),
-          (Icons.schedule, 'Horarios'),
-          (Icons.palette, 'Personalización'),
-        ]
-      : const [
-          (Icons.home_rounded, 'Panel principal'),
-          (Icons.qr_code_scanner, 'Escanear QR'),
-          (Icons.edit_note, 'Registro manual'),
-        ];
+  static const List<(IconData, String)> _all = [
+    (Icons.home_rounded, 'Panel principal'),
+    (Icons.school, 'Estudiantes'),
+    (Icons.people, 'Personal'),
+    (Icons.qr_code_scanner, 'Escanear QR'),
+    (Icons.edit_note, 'Registro manual'),
+    (Icons.assessment, 'Reportes'),
+    (Icons.schedule, 'Horarios'),
+    (Icons.palette, 'Personalización'),
+    (Icons.contact_support_rounded, 'Contactos y políticas'),
+  ];
+
+  /// El administrador ve todo; el personal solo lo que el administrador habilitó.
+  List<(IconData, String)> get _items => [
+        for (final item in _all)
+          if (user.can(item.$2)) item,
+      ];
 
   static Route<void> _route(Widget page) => PageRouteBuilder<void>(
         pageBuilder: (_, __, ___) => page,
@@ -50,6 +52,7 @@ class AppSidebar extends StatelessWidget {
       );
 
   void _tap(BuildContext context, String title) {
+    if (!user.can(title)) return;
     if (title == selected) {
       if (title == 'Panel principal') onReload?.call();
       return;
@@ -66,6 +69,7 @@ class AppSidebar extends StatelessWidget {
     if (title == 'Reportes') page = ReportsScreen(user: user);
     if (title == 'Horarios') page = SchedulesScreen(user: user);
     if (title == 'Personalización') page = CustomizationScreen(user: user);
+    if (title == 'Contactos y políticas') page = ContactScreen(user: user);
     if (page != null) {
       final route = _route(page);
       if (selected == 'Panel principal') {
@@ -86,72 +90,115 @@ class AppSidebar extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => Container(
-        width: 235,
+  Widget build(BuildContext context) {
+    final initial = user.username.isEmpty ? '?' : user.username[0].toUpperCase();
+    return Container(
+      width: 235,
+      decoration: BoxDecoration(
         color: P.sidebar,
-        child: LayoutBuilder(builder: (context, box) => SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: box.maxHeight),
-            child: IntrinsicHeight(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          SizedBox(height: 16),
-          Center(child: Image.asset('assets/images/logo.png', width: 150, height: 150, filterQuality: FilterQuality.high)),
-          SizedBox(height: 14),
-          SizedBox(height: 26),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 18),
-            child: Text(user.username.toUpperCase(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: P.text, fontWeight: FontWeight.bold, fontSize: 12)),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(18, 4, 18, 18),
-            child: Text('Sistema de control escolar', style: TextStyle(color: P.muted2, fontSize: 10)),
-          ),
-          Divider(color: P.sideLine, height: 1),
-          SizedBox(height: 10),
-          for (final item in _items)
+        border: Border(right: BorderSide(color: P.sideLine)),
+      ),
+      child: LayoutBuilder(builder: (context, box) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: box.maxHeight),
+          child: IntrinsicHeight(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            SizedBox(height: 18),
+            Center(child: Image.asset('assets/images/logo.png', width: 128, height: 128, filterQuality: FilterQuality.high)),
+            SizedBox(height: 14),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 9, vertical: 2),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap: () => _tap(context, item.$2),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 11, vertical: 13),
-                  decoration: BoxDecoration(
-                    color: item.$2 == selected ? cyan.withOpacity(.14) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(children: [
-                    Icon(item.$1, color: item.$2 == selected ? cyan : P.sideText, size: 20),
-                    SizedBox(width: 13),
-                    Expanded(
-                      child: Text(item.$2,
-                          style: TextStyle(
-                              color: P.text,
-                              fontSize: 12,
-                              fontWeight: item.$2 == selected ? FontWeight.bold : FontWeight.w500)),
-                    ),
-                  ]),
+              padding: EdgeInsets.symmetric(horizontal: 14),
+              child: Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: P.accent.withValues(alpha: .12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: P.accent.withValues(alpha: .3)),
                 ),
+                child: Row(children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(gradient: P.brand, shape: BoxShape.circle),
+                    child: Text(initial, style: TextStyle(color: P.onBrand, fontWeight: FontWeight.w800, fontSize: 15)),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(user.username,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: P.text, fontWeight: FontWeight.w700, fontSize: 13)),
+                      Text(user.isAdmin ? 'Administrador' : 'Personal de asistencia',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: P.muted2, fontSize: 10.5)),
+                    ]),
+                  ),
+                ]),
               ),
             ),
-          Spacer(),
-          ListTile(
-            dense: true,
-            leading: Icon(P.dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: P.accent2, size: 20),
-            title: Text(P.dark ? 'Modo claro' : 'Modo oscuro', style: TextStyle(color: P.text, fontSize: 12)),
-            onTap: ThemeController.instance.toggle,
-          ),
-          Divider(color: P.sideLine, height: 1),
-          ListTile(
-            leading: Icon(Icons.logout, color: red, size: 20),
-            title: Text('Cerrar sesión', style: TextStyle(color: P.text, fontSize: 12)),
-            onTap: () => Navigator.of(context).popUntil((r) => r.isFirst),
-          ),
-          SizedBox(height: 12),
-        ])),
-          ),
-        )),
-      );
+            SizedBox(height: 18),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Text('MENÚ', style: TextStyle(color: P.subtle, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.4)),
+            ),
+            SizedBox(height: 6),
+            for (final item in _items)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  hoverColor: P.accent.withValues(alpha: .10),
+                  onTap: () => _tap(context, item.$2),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    decoration: BoxDecoration(
+                      gradient: item.$2 == selected
+                          ? LinearGradient(colors: [P.accent.withValues(alpha: .30), P.accent2.withValues(alpha: .18)])
+                          : null,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: item.$2 == selected ? [BoxShadow(color: P.accent.withValues(alpha: .28), blurRadius: 14)] : null,
+                      border: Border.all(
+                          color: item.$2 == selected ? P.accent.withValues(alpha: .55) : Colors.transparent),
+                    ),
+                    child: Row(children: [
+                      Icon(item.$1, color: item.$2 == selected ? P.text : P.muted2, size: 20),
+                      SizedBox(width: 13),
+                      Expanded(
+                        child: Text(item.$2,
+                            style: TextStyle(
+                                color: P.text,
+                                fontSize: 12.5,
+                                fontWeight: item.$2 == selected ? FontWeight.w800 : FontWeight.w500)),
+                      ),
+                      if (item.$2 == selected)
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(gradient: P.brand, shape: BoxShape.circle),
+                        ),
+                    ]),
+                  ),
+                ),
+              ),
+            Spacer(),
+            ListTile(
+              dense: true,
+              leading: Icon(P.dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: P.accent2, size: 20),
+              title: Text(P.dark ? 'Modo claro' : 'Modo oscuro', style: TextStyle(color: P.text, fontSize: 12)),
+              onTap: ThemeController.instance.toggle,
+            ),
+            Divider(color: P.sideLine, height: 1),
+            ListTile(
+              leading: Icon(Icons.logout, color: red, size: 20),
+              title: Text('Cerrar sesión', style: TextStyle(color: P.text, fontSize: 12)),
+              onTap: () => Navigator.of(context).popUntil((r) => r.isFirst),
+            ),
+            SizedBox(height: 12),
+          ])),
+        ),
+      )),
+    );
+  }
 }

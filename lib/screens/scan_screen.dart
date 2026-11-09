@@ -7,6 +7,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/futuristic.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:zxing2/qrcode.dart';
@@ -68,9 +69,9 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
   static Color get panel => P.panel;
   static Color get line => P.line;
   static Color get cyan => P.accent;
-  static const green = Color(0xFF20D69A);
-  static const red = Color(0xFFFF5275);
-  static const orange = Color(0xFFFFB323);
+  static Color get green => P.ok;
+  static Color get red => P.err;
+  static Color get orange => P.warn;
   static Color get blue => P.accent2;
 
   late final AnimationController _scanLine =
@@ -318,18 +319,18 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return FScaffold(
       backgroundColor: bg,
       body: Row(children: [
         AppSidebar(user: widget.user, selected: 'Escanear QR'),
-        Expanded(
+        FContent(
           child: SafeArea(
             child: Column(children: [
               Container(
                 height: 66,
                 padding: EdgeInsets.symmetric(horizontal: 22),
                 child: Row(children: [
-                  Icon(Icons.qr_code_scanner, color: cyan, size: 30),
+                  PageIcon(Icons.qr_code_scanner),
                   SizedBox(width: 12),
                   Text('Escanear asistencia',
                       style: TextStyle(color: P.text, fontSize: 22, fontWeight: FontWeight.bold)),
@@ -364,7 +365,7 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
   }
 
   BoxDecoration _panel() =>
-      BoxDecoration(color: panel, border: Border.all(color: line), borderRadius: BorderRadius.circular(16));
+      P.card(r: 16);
 
   Widget _scannerPanel() {
     return Container(
@@ -423,7 +424,7 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 18),
             child: Text(_cameraError ?? 'Cámara no disponible.',
-                textAlign: TextAlign.center, style: TextStyle(color: P.text.withOpacity(.7))),
+                textAlign: TextAlign.center, style: TextStyle(color: P.muted)),
           ),
           SizedBox(height: 10),
           FilledButton.icon(onPressed: _startCameras, icon: Icon(Icons.refresh), label: Text('Reintentar')),
@@ -469,7 +470,7 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: P.text, fontWeight: FontWeight.bold, fontSize: 16)),
             SizedBox(height: 2),
-            Text(o.detail, style: TextStyle(color: color, fontSize: 13)),
+            Text(o.detail, style: TextStyle(color: P.muted, fontSize: 13)),
           ]),
         ),
         Icon(icon, color: color, size: 28),
@@ -497,7 +498,7 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
       return Container(
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 3),
         decoration: BoxDecoration(color: color.withOpacity(.18), borderRadius: BorderRadius.circular(20)),
-        child: Text(s, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 11)),
+        child: Text(s, style: TextStyle(color: P.text, fontWeight: FontWeight.bold, fontSize: 11)),
       );
     }
 
@@ -513,7 +514,7 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
                 style: TextStyle(color: P.text, fontSize: 20, fontWeight: FontWeight.bold)),
           ),
           if (_session.isNotEmpty)
-            Text('${_session.length}', style: TextStyle(color: cyan, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('${_session.length}', style: TextStyle(color: P.text, fontSize: 18, fontWeight: FontWeight.bold)),
         ]),
         SizedBox(height: 14),
         Container(
@@ -529,7 +530,7 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
         Expanded(
           child: _session.isEmpty
               ? Center(
-                  child: Text('Aún no hay registros en esta sesión', style: TextStyle(color: P.text.withOpacity(.7))))
+                  child: Text('Aún no hay registros en esta sesión', style: TextStyle(color: P.muted)))
               : ListView.separated(
                   itemCount: _session.length,
                   separatorBuilder: (_, __) => Divider(color: line, height: 1),

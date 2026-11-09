@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/futuristic.dart';
 
 import '../auth/auth_repository.dart';
 import '../database/app_database.dart';
@@ -38,9 +39,9 @@ class _ManualScreenState extends State<ManualScreen> {
   static Color get panel => P.panel;
   static Color get line => P.line;
   static Color get cyan => P.accent;
-  static const green = Color(0xFF20D69A);
-  static const red = Color(0xFFFF5275);
-  static const orange = Color(0xFFFFB323);
+  static Color get green => P.ok;
+  static Color get red => P.err;
+  static Color get orange => P.warn;
 
   static const motivos = [
     'Carné olvidado',
@@ -423,7 +424,7 @@ class _ManualScreenState extends State<ManualScreen> {
   // ───────────────────────── Interfaz ─────────────────────────
 
   BoxDecoration _panel() =>
-      BoxDecoration(color: panel, border: Border.all(color: line), borderRadius: BorderRadius.circular(16));
+      P.card(r: 16);
 
   InputDecoration _dec({String? label, String? hint, Widget? prefix}) => InputDecoration(
         labelText: label,
@@ -437,18 +438,18 @@ class _ManualScreenState extends State<ManualScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return FScaffold(
       backgroundColor: bg,
       body: Row(children: [
         AppSidebar(user: widget.user, selected: 'Registro manual'),
-        Expanded(
+        FContent(
           child: SafeArea(
             child: Column(children: [
               Container(
                 height: 66,
                 padding: EdgeInsets.symmetric(horizontal: 22),
                 child: Row(children: [
-                  Icon(Icons.edit_note, color: cyan, size: 32),
+                  PageIcon(Icons.edit_note),
                   SizedBox(width: 12),
                   Text('Registro manual',
                       style: TextStyle(color: P.text, fontSize: 22, fontWeight: FontWeight.bold)),
@@ -501,7 +502,7 @@ class _ManualScreenState extends State<ManualScreen> {
           if (_searchCtrl.text.trim().length >= 2 && _results.isEmpty)
             Padding(
               padding: EdgeInsets.only(top: 10),
-              child: Text('Sin coincidencias.', style: TextStyle(color: P.text.withOpacity(.6))),
+              child: Text('Sin coincidencias.', style: TextStyle(color: P.muted)),
             ),
           for (final a in _results)
             Padding(
@@ -520,7 +521,7 @@ class _ManualScreenState extends State<ManualScreen> {
                             style: TextStyle(color: P.text, fontWeight: FontWeight.bold, fontSize: 15)),
                         SizedBox(height: 2),
                         Text('DNI ${a.dni} · ${a.aula.isEmpty ? '' : '${a.aula} · '}${a.turno}',
-                            style: TextStyle(color: P.text.withOpacity(.6), fontSize: 12)),
+                            style: TextStyle(color: P.muted, fontSize: 12)),
                       ]),
                     ),
                     Icon(Icons.chevron_right, color: cyan),
@@ -548,14 +549,14 @@ class _ManualScreenState extends State<ManualScreen> {
             radius: 30,
             backgroundColor: P.line,
             backgroundImage: a.foto == null ? null : MemoryImage(a.foto!),
-            child: a.foto == null ? Icon(Icons.person, color: P.text.withOpacity(.7)) : null,
+            child: a.foto == null ? Icon(Icons.person, color: P.muted) : null,
           ),
           SizedBox(width: 14),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(a.nombreNormal, style: TextStyle(color: P.text, fontSize: 18, fontWeight: FontWeight.bold)),
               Text('DNI ${a.dni} · ${a.aula.isEmpty ? '' : '${a.aula} · '}Turno ${a.turno}',
-                  style: TextStyle(color: P.text.withOpacity(.6), fontSize: 13)),
+                  style: TextStyle(color: P.muted, fontSize: 13)),
             ]),
           ),
         ]),
@@ -680,7 +681,7 @@ class _ManualScreenState extends State<ManualScreen> {
               },
             ),
           ),
-          IconButton(tooltip: 'Actualizar', onPressed: _loadPending, icon: Icon(Icons.refresh, color: P.text.withOpacity(.7))),
+          IconButton(tooltip: 'Actualizar', onPressed: _loadPending, icon: Icon(Icons.refresh, color: P.muted)),
         ]),
         SizedBox(height: 10),
         Align(
@@ -688,7 +689,7 @@ class _ManualScreenState extends State<ManualScreen> {
           child: OutlinedButton.icon(
             onPressed: _closeDay,
             icon: Icon(Icons.event_busy, size: 18, color: orange),
-            label: Text('Cerrar día', style: TextStyle(color: orange, fontWeight: FontWeight.bold)),
+            label: Text('Cerrar día', style: TextStyle(color: P.text, fontWeight: FontWeight.bold)),
             style: OutlinedButton.styleFrom(side: BorderSide(color: orange)),
           ),
         ),
@@ -701,7 +702,7 @@ class _ManualScreenState extends State<ManualScreen> {
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(Icons.check_circle, color: green, size: 20),
               SizedBox(width: 8),
-              Text('No hay salidas pendientes en este momento.', style: TextStyle(color: P.text.withOpacity(.7))),
+              Text('No hay salidas pendientes en este momento.', style: TextStyle(color: P.muted)),
             ]),
           )
         else ...[
@@ -725,7 +726,7 @@ class _ManualScreenState extends State<ManualScreen> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(p.nombre, style: TextStyle(color: P.text, fontWeight: FontWeight.bold)),
                     Text('DNI ${p.dni} · ${p.turno} · entró ${p.entrada} · salida oficial ${p.limite}',
-                        style: TextStyle(color: P.text.withOpacity(.6), fontSize: 12)),
+                        style: TextStyle(color: P.muted, fontSize: 12)),
                   ]),
                 ),
                 IconButton(

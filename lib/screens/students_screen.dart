@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/futuristic.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart' hide Border;
@@ -26,7 +27,7 @@ class _StudentsScreenState extends State<StudentsScreen>{
   static Color get panel => P.panel;
   static Color get line => P.line;
   static Color get cyan => P.accent;
-  static const red = Color(0xFFFF5275);
+  static Color get red => P.err;
   final form=GlobalKey<FormState>();
   final names=TextEditingController(),surnames=TextEditingController(),dni=TextEditingController(),grade=TextEditingController(),section=TextEditingController(),search=TextEditingController();
   String shift='Mañana',filterGrade='Todos',filterSection='Todos',filterShift='Todos';
@@ -335,13 +336,13 @@ class _StudentsScreenState extends State<StudentsScreen>{
 
   @override Widget build(BuildContext context){
     final active=filtered.where((r)=>r['activo']==1).length;
-    return Scaffold(backgroundColor:bg,body:Row(children:[
+    return FScaffold(backgroundColor:bg,body:Row(children:[
       AppSidebar(user:widget.user,selected:'Estudiantes'),
-      Expanded(child:SafeArea(child:LayoutBuilder(builder:(ctx,box){
+      FContent(child:SafeArea(child:LayoutBuilder(builder:(ctx,box){
         final w=math.max(box.maxWidth,1100.0),h=math.max(box.maxHeight,560.0);
         return SingleChildScrollView(scrollDirection:Axis.horizontal,child:SizedBox(width:w,child:SingleChildScrollView(child:SizedBox(height:h,child:Column(children:[
       Container(height:66,padding:EdgeInsets.symmetric(horizontal:22),child:Row(children:[
-        Icon(Icons.school,color:cyan,size:30),SizedBox(width:12),
+        PageIcon(Icons.school),SizedBox(width:12),
         Text('Gestión de estudiantes',style:TextStyle(color:P.text,fontSize:22,fontWeight:FontWeight.bold)),
         Spacer(),
         TextButton.icon(onPressed:importExcel,icon:Icon(Icons.upload_file),label:Text('Importar Excel')),
@@ -370,7 +371,7 @@ class _StudentsScreenState extends State<StudentsScreen>{
             TextButton.icon(onPressed:exportQrCodesPdf,icon:Icon(Icons.qr_code_2),label:Text('Descargar QR PDF')),
             TextButton.icon(onPressed:deleteAll,icon:Icon(Icons.delete_forever,color:red),label:Text('Eliminar todos',style:TextStyle(color:red))),
           ]),
-          Expanded(child:filtered.isEmpty?Center(child:Text('No hay estudiantes para mostrar.',style:TextStyle(color:P.text.withOpacity(.7)))):ListView.separated(itemCount:filtered.length,separatorBuilder:(_,__)=>Divider(color:line),itemBuilder:(ctx,i){
+          Expanded(child:filtered.isEmpty?Center(child:Text('No hay estudiantes para mostrar.',style:TextStyle(color:P.muted))):ListView.separated(itemCount:filtered.length,separatorBuilder:(_,__)=>Divider(color:line),itemBuilder:(ctx,i){
             final r=filtered[i];final isActive=r['activo']==1;final photoBytes=r['foto'] as Uint8List?;
             return ListTile(
               leading:photoBytes==null?CircleAvatar(child:Icon(Icons.person)):CircleAvatar(backgroundImage:MemoryImage(photoBytes)),
@@ -393,7 +394,7 @@ class _StudentsScreenState extends State<StudentsScreen>{
     ]));
   }
   Widget _act(String tip,IconData icon,Color color,VoidCallback onTap)=>IconButton(tooltip:tip,onPressed:onTap,icon:Icon(icon,color:color,size:21),visualDensity:VisualDensity.compact,padding:EdgeInsets.zero,constraints:BoxConstraints(minWidth:36,minHeight:36));
-  BoxDecoration _panel()=>BoxDecoration(color:panel,border:Border.all(color:line),borderRadius:BorderRadius.circular(14));
+  BoxDecoration _panel()=>P.card(r: 14);
   Widget _input(TextEditingController c,String label,{bool required=true})=>Padding(padding:EdgeInsets.only(bottom:10),child:TextFormField(controller:c,style:TextStyle(color:P.text),decoration:InputDecoration(labelText:label,border:OutlineInputBorder()),validator:(v)=>required&&(v==null||v.trim().isEmpty)?'Completa $label':null));
   Widget _field(TextEditingController c,String label)=>Padding(padding:EdgeInsets.only(bottom:8),child:TextField(controller:c,decoration:InputDecoration(labelText:label)));
   Widget _filterSelect(String label,String value,List<String> values,ValueChanged<String> changed)=>DropdownButtonFormField<String>(value:values.contains(value)?value:'Todos',isExpanded:true,decoration:InputDecoration(labelText:label,contentPadding:EdgeInsets.symmetric(horizontal:10,vertical:8)),items:values.map((v)=>DropdownMenuItem(value:v,child:Text(v.isEmpty?'(Sin dato)':v,overflow:TextOverflow.ellipsis))).toList(),onChanged:(v){if(v!=null)changed(v);});

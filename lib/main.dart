@@ -3,7 +3,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'auth/auth_repository.dart';
 import 'database/app_database.dart';
-import 'screens/access_screen.dart';
+import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 
 late final AuthRepository authRepository;
@@ -23,10 +23,10 @@ class GestorApp extends StatelessWidget {
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: ThemeController.instance,
     builder: (context, _) => MaterialApp(
-      title: 'Gestor de Asistencias',
+      title: 'Sistema Escolar SZR',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
-      home: const AccessScreen(),
+      home: const SplashScreen(),
     ),
   );
 }

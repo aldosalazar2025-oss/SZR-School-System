@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/futuristic.dart';
 import 'package:flutter/services.dart';
 
 import '../auth/auth_repository.dart';
@@ -133,7 +134,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
 
   Widget _controls() => Container(
         padding: EdgeInsets.all(18),
-        decoration: BoxDecoration(color: panel, border: Border.all(color: line), borderRadius: BorderRadius.circular(16)),
+        decoration: P.card(r: 16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           TextField(
             controller: _inst,
@@ -164,12 +165,12 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
             OutlinedButton.icon(
               onPressed: _pickLogo,
               icon: Icon(Icons.image, color: cyan),
-              label: Text(_cfg.logo == null ? 'Elegir logo / imagen' : 'Cambiar logo', style: TextStyle(color: cyan)),
+              label: Text(_cfg.logo == null ? 'Elegir logo / imagen' : 'Cambiar logo', style: TextStyle(color: P.text)),
               style: OutlinedButton.styleFrom(side: BorderSide(color: cyan), minimumSize: Size(0, 44)),
             ),
             SizedBox(width: 10),
             if (_cfg.logo != null)
-              TextButton(onPressed: () => _touch(() => _cfg.logo = null), child: Text('Quitar', style: TextStyle(color: Color(0xFFFF5275)))),
+              TextButton(onPressed: () => _touch(() => _cfg.logo = null), child: Text('Quitar', style: TextStyle(color: P.err))),
             SizedBox(width: 6),
             Text(_cfg.logo == null ? 'Sin imagen' : 'Imagen lista', style: TextStyle(color: muted, fontSize: 12)),
           ]),
@@ -209,18 +210,18 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
       );
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => FScaffold(
         backgroundColor: bg,
         body: Row(children: [
           AppSidebar(user: widget.user, selected: 'Personalización'),
-          Expanded(
+          FContent(
             child: SafeArea(
               child: Column(children: [
                 Container(
                   height: 66,
                   padding: EdgeInsets.symmetric(horizontal: 22),
                   child: Row(children: [
-                    Icon(Icons.palette, color: cyan, size: 30),
+                    PageIcon(Icons.palette),
                     SizedBox(width: 12),
                     Text('Personalizar carnet', style: TextStyle(color: P.text, fontSize: 22, fontWeight: FontWeight.bold)),
                   ]),
@@ -291,8 +292,8 @@ Future<Color?> showCarnetColorPicker(BuildContext context, Color initial, String
                 decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10), border: Border.all(color: P.text.withOpacity(.24))),
               ),
               SizedBox(height: 10),
-              slider('R', r, Colors.redAccent, (v) => r = v),
-              slider('G', g, Colors.greenAccent, (v) => g = v),
+              slider('R', r, P.err, (v) => r = v),
+              slider('G', g, P.ok, (v) => g = v),
               slider('B', b, Colors.lightBlueAccent, (v) => b = v),
               TextField(
                 controller: hex,

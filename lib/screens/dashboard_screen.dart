@@ -4,6 +4,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../auth/auth_repository.dart';
 import '../database/app_database.dart';
 import 'app_sidebar.dart';
+import '../theme/futuristic.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key, required this.user});
@@ -17,9 +18,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   static Color get panel => P.panel;
   static Color get line => P.line;
   static Color get cyan => P.accent;
-  static const green = Color(0xFF20D69A);
-  static const red = Color(0xFFFF5275);
-  static const orange = Color(0xFFFFB323);
+  static Color get green => P.ok;
+  static Color get red => P.err;
+  static Color get orange => P.warn;
   static Color get blue => P.accent2;
   static Color get purple => P.accent;
   DateTime from=DateTime.now(), to=DateTime.now();
@@ -160,17 +161,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       backgroundColor:bg,
-      body:Row(children:[
+      body:Stack(children:[Row(children:[
         _sidebar(items),
-        Expanded(child:Column(children:[
-          Container(height:62,padding:EdgeInsets.symmetric(horizontal:22),
-            decoration:BoxDecoration(color:bg,border:Border(bottom:BorderSide(color:line))),
+        FContent(offset:0,child:Stack(children:[Positioned.fill(child:FuturisticBackground()),Column(children:[
+          Container(height:66,padding:EdgeInsets.symmetric(horizontal:22),
+            decoration:BoxDecoration(color:panel,border:Border(bottom:BorderSide(color:line)),boxShadow:P.shadow),
             child:Row(children:[
-              Icon(Icons.insert_chart_outlined,color:cyan,size:27),
-              SizedBox(width:10),
+              PageIcon(Icons.insert_chart_outlined),
+              SizedBox(width:12),
               Text('Panel principal',style:TextStyle(color:P.text,fontSize:21,fontWeight:FontWeight.bold)),
               Spacer(),
-              Text(widget.user.username,style:TextStyle(color:P.muted,fontSize:12)),
+              Container(padding:EdgeInsets.symmetric(horizontal:12,vertical:6),decoration:BoxDecoration(color:cyan.withValues(alpha:.16),borderRadius:BorderRadius.circular(20),border:Border.all(color:cyan.withValues(alpha:.4))),child:Row(mainAxisSize:MainAxisSize.min,children:[Icon(Icons.person_rounded,size:15,color:P.text),SizedBox(width:6),Text(widget.user.username,style:TextStyle(color:P.text,fontSize:12,fontWeight:FontWeight.w600))])),
             ])),
           Expanded(child:SafeArea(child:RefreshIndicator(onRefresh:load,child:ListView(padding:EdgeInsets.fromLTRB(18,12,18,28),children:[
             Text('Sesión iniciada como ${widget.user.username} (${widget.user.isAdmin?'Administrador':'Personal de asistencia'})',style:TextStyle(color:P.muted,fontSize:13)),
@@ -189,7 +190,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _metric(Icons.wb_twilight,'MAÑANA','$morning',cyan),
                 _metric(Icons.nights_stay,'TARDE','$afternoon',purple),
               ];
-              return GridView.count(shrinkWrap:true,physics:NeverScrollableScrollPhysics(),crossAxisCount:cols,crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:cols>=7?1.0:1.4,children:cards);
+              return GridView.count(shrinkWrap:true,physics:NeverScrollableScrollPhysics(),crossAxisCount:cols,crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:cols>=7?1.0:1.4,children:[for(int i=0;i<cards.length;i++)FadeSlideIn(delay:Duration(milliseconds:70*i),child:HoverLift(child:cards[i]))]);
             }),
             SizedBox(height:16),
             LayoutBuilder(builder:(context,c){
@@ -198,8 +199,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _chart('PRESENTES VS. AUSENTES',[_Legend(green,'Presentes $present'),_Legend(red,'Ausentes $absent')],_Donut(present,absent)),
                 _chart('PRESENTES POR TURNO',[for(int i=0;i<shifts.length;i++)_Legend(shiftColors[i%shiftColors.length],'${shifts.keys.elementAt(i)} ${shifts.values.elementAt(i)}')],_BarChart(shifts.values.toList(),shifts.keys.toList(),[for(int i=0;i<shifts.length;i++)shiftColors[i%shiftColors.length]])),
               ];
-              if(c.maxWidth>900)return Row(crossAxisAlignment:CrossAxisAlignment.start,children:[for(int i=0;i<3;i++)Expanded(child:Padding(padding:EdgeInsets.only(right:i==2?0:10),child:charts[i]))]);
-              return Column(children:charts.map((w)=>Padding(padding:EdgeInsets.only(bottom:12),child:w)).toList());
+              if(c.maxWidth>900)return Row(crossAxisAlignment:CrossAxisAlignment.start,children:[for(int i=0;i<3;i++)Expanded(child:Padding(padding:EdgeInsets.only(right:i==2?0:10),child:FadeSlideIn(delay:Duration(milliseconds:350+120*i),child:charts[i])))]);
+              return Column(children:charts.map((w)=>Padding(padding:EdgeInsets.only(bottom:12),child:FadeSlideIn(child:w))).toList());
             }),
             SizedBox(height:14),
             LayoutBuilder(builder:(context,c){
@@ -209,18 +210,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               return Column(children:[a,SizedBox(height:12),b]);
             }),
             SizedBox(height:16),
-            _attendanceTable(dayStudents,to),
+            FadeSlideIn(delay:Duration(milliseconds:800),child:_attendanceTable(dayStudents,to)),
             SizedBox(height:12),
             Text('Estadísticas calculadas con los registros almacenados en este equipo.',style:TextStyle(color:P.subtle,fontSize:11)),
           ])))),
-        ])),
-      ]),
+        ])])),
+      ]),Positioned.fill(child:WelcomeOverlay(name:widget.user.username))]),
     );
   }
 
   Widget _sidebar(List<_MenuItem> items)=>AppSidebar(user:widget.user,selected:'Panel principal',onReload:load);
 
-  Widget _filter()=>Container(padding:EdgeInsets.all(13),decoration:BoxDecoration(color:panel,border:Border.all(color:line),borderRadius:BorderRadius.circular(13)),
+  Widget _filter()=>Container(padding:EdgeInsets.all(13),decoration:P.card(r:13),
     child:Wrap(spacing:9,runSpacing:9,crossAxisAlignment:WrapCrossAlignment.center,children:[
       Text('FILTRAR GRÁFICOS',style:TextStyle(color:P.text,fontWeight:FontWeight.bold,fontSize:12)),
       SizedBox(width:155,child:DropdownButtonFormField<String>(value:period,dropdownColor:panel,style:TextStyle(color:P.text),decoration:_decoration('Período'),
@@ -232,15 +233,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ]));
   InputDecoration _decoration(String s)=>InputDecoration(labelText:s,labelStyle:TextStyle(color:P.muted),filled:true,fillColor:bg,contentPadding:EdgeInsets.symmetric(horizontal:10,vertical:8),border:OutlineInputBorder(borderRadius:BorderRadius.circular(8)));
   ButtonStyle _buttonStyle()=>OutlinedButton.styleFrom(foregroundColor:P.text,side:BorderSide(color:line));
-  Widget _metric(IconData icon,String label,String value,Color color)=>Container(padding:EdgeInsets.all(8),decoration:BoxDecoration(color:panel,border:Border.all(color:line),borderRadius:BorderRadius.circular(12)),
-    child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[Icon(icon,color:color,size:23),SizedBox(height:5),Text(value,style:TextStyle(color:P.text,fontWeight:FontWeight.bold,fontSize:23)),Text(label,textAlign:TextAlign.center,style:TextStyle(color:P.muted2,fontSize:9))]));
-  Widget _chart(String title,List<_Legend> legends,Widget graph)=>Container(height:255,padding:EdgeInsets.all(13),decoration:BoxDecoration(color:panel,border:Border.all(color:line),borderRadius:BorderRadius.circular(13)),
-    child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:TextStyle(color:P.muted,fontWeight:FontWeight.bold,fontSize:11)),SizedBox(height:10),Expanded(child:graph),Wrap(alignment:WrapAlignment.center,spacing:10,runSpacing:5,children:legends.map((l)=>Row(mainAxisSize:MainAxisSize.min,children:[Container(width:8,height:8,color:l.color),SizedBox(width:4),Text(l.text,style:TextStyle(color:P.muted2,fontSize:9))])).toList())]));
-  Widget _attendanceTable(List<_StudentDay> rows,DateTime selected)=>Container(padding:EdgeInsets.all(14),decoration:BoxDecoration(color:panel,border:Border.all(color:line),borderRadius:BorderRadius.circular(13)),
+  Widget _metric(IconData icon,String label,String value,Color color)=>Container(padding:EdgeInsets.all(8),decoration:P.card(r:14),
+    child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
+      Container(width:32,height:32,decoration:BoxDecoration(color:color.withValues(alpha:.2),shape:BoxShape.circle),child:Icon(icon,color:color,size:19)),
+      SizedBox(height:5),
+      TweenAnimationBuilder<double>(tween:Tween<double>(begin:0,end:double.tryParse(value)??0),duration:Duration(milliseconds:900),curve:Curves.easeOutCubic,builder:(context,v,_)=>Text('${v.round()}',style:TextStyle(fontFamily:'Consolas',color:P.text,fontWeight:FontWeight.w800,fontSize:24,shadows:[Shadow(color:color.withValues(alpha:.6),blurRadius:12)]))),
+      Text(label,textAlign:TextAlign.center,style:TextStyle(color:P.muted2,fontSize:10,fontWeight:FontWeight.w600,letterSpacing:.4))]));
+  Widget _chart(String title,List<_Legend> legends,Widget graph)=>Container(height:255,padding:EdgeInsets.all(13),decoration:P.card(r:13),
+    child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:TextStyle(color:P.muted,fontWeight:FontWeight.bold,fontSize:11)),SizedBox(height:10),Expanded(child:graph),Wrap(alignment:WrapAlignment.center,spacing:10,runSpacing:5,children:legends.map((l)=>Row(mainAxisSize:MainAxisSize.min,children:[Container(width:9,height:9,decoration:BoxDecoration(color:l.color,borderRadius:BorderRadius.circular(3))),SizedBox(width:4),Text(l.text,style:TextStyle(color:P.muted2,fontSize:9))])).toList())]));
+  Widget _attendanceTable(List<_StudentDay> rows,DateTime selected)=>Container(padding:EdgeInsets.all(14),decoration:P.card(r:13),
     child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
       Row(children:[Icon(Icons.table_chart,color:cyan),SizedBox(width:8),Text('Asistencia del día',style:TextStyle(color:P.text,fontSize:17,fontWeight:FontWeight.bold)),SizedBox(width:8),Text('${shortDate(selected)} · ${rows.length} estudiantes',style:TextStyle(color:P.muted2,fontSize:11))]),
       SizedBox(height:12),
-      if(rows.isEmpty)Padding(padding:EdgeInsets.all(18),child:Text('No hay estudiantes registrados.',style:TextStyle(color:P.text.withOpacity(.7))))
+      if(rows.isEmpty)Padding(padding:EdgeInsets.all(18),child:Text('No hay estudiantes registrados.',style:TextStyle(color:P.muted)))
       else LayoutBuilder(builder:(context,box)=>SingleChildScrollView(scrollDirection:Axis.horizontal,child:ConstrainedBox(constraints:BoxConstraints(minWidth:box.maxWidth),child:DataTable(headingRowColor:WidgetStateProperty.all(P.head),dataRowMinHeight:42,dataRowMaxHeight:52,columnSpacing:22,
         columns:const [DataColumn(label:Text('ESTUDIANTE')),DataColumn(label:Text('GRADO / SECCIÓN')),DataColumn(label:Text('TURNO')),DataColumn(label:Text('ENTRADA')),DataColumn(label:Text('ESTADO')),DataColumn(label:Text('REGISTROS'))],
         rows:rows.map((r)=>DataRow(cells:[
@@ -252,9 +257,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           DataCell(Text('${r.count}',style:TextStyle(color:P.text))),
         ])).toList())))),
     ]));
-  Widget _status(String s){final color=s=='TEMPRANO'?blue:s=='PUNTUAL'?green:s=='TARDE'?orange:red;return Container(padding:EdgeInsets.symmetric(horizontal:9,vertical:5),decoration:BoxDecoration(color:color.withOpacity(.14),border:Border.all(color:color.withOpacity(.55)),borderRadius:BorderRadius.circular(20)),child:Text(s,style:TextStyle(color:color,fontSize:10,fontWeight:FontWeight.bold)));}
+  Widget _status(String s){final color=s=='TEMPRANO'?blue:s=='PUNTUAL'?green:s=='TARDE'?orange:red;return Container(padding:EdgeInsets.symmetric(horizontal:9,vertical:5),decoration:BoxDecoration(color:color.withValues(alpha:.22),border:Border.all(color:color.withValues(alpha:.7)),borderRadius:BorderRadius.circular(20)),child:Text(s,style:TextStyle(color:P.text,fontSize:10,fontWeight:FontWeight.bold)));}
   Widget _module(_MenuItem item)=>InkWell(onTap:()=>showDialog(context:context,builder:(_)=>AlertDialog(title:Text(item.title),content:Text('Este módulo está contemplado en el menú. Su funcionalidad se implementará en la siguiente etapa.'),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:Text('Cerrar'))])),
-    child:Container(padding:EdgeInsets.all(14),decoration:BoxDecoration(color:panel,border:Border.all(color:line),borderRadius:BorderRadius.circular(12)),child:Row(children:[Icon(item.icon,color:cyan,size:27),SizedBox(width:12),Expanded(child:Column(mainAxisAlignment:MainAxisAlignment.center,crossAxisAlignment:CrossAxisAlignment.start,children:[Text(item.title,style:TextStyle(color:P.text,fontWeight:FontWeight.bold)),Text(item.subtitle,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(color:P.muted2,fontSize:11))])),Icon(Icons.chevron_right,color:P.subtle)])));
+    child:Container(padding:EdgeInsets.all(14),decoration:P.card(r:12),child:Row(children:[Icon(item.icon,color:cyan,size:27),SizedBox(width:12),Expanded(child:Column(mainAxisAlignment:MainAxisAlignment.center,crossAxisAlignment:CrossAxisAlignment.start,children:[Text(item.title,style:TextStyle(color:P.text,fontWeight:FontWeight.bold)),Text(item.subtitle,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(color:P.muted2,fontSize:11))])),Icon(Icons.chevron_right,color:P.subtle)])));
 }
 
 class _MenuItem{const _MenuItem(this.icon,this.title,this.subtitle);final IconData icon;final String title,subtitle;}
@@ -264,38 +269,38 @@ class _StudentDay{const _StudentDay({required this.name,required this.dni,requir
 
 class _BarChart extends StatelessWidget{
   const _BarChart(this.values,this.labels,this.colors);final List<int> values;final List<String> labels;final List<Color> colors;
-  @override Widget build(BuildContext context)=>CustomPaint(painter:_BarPainter(values,labels,colors),child:SizedBox.expand());
+  @override Widget build(BuildContext context)=>TweenAnimationBuilder<double>(tween:Tween<double>(begin:0,end:1),duration:Duration(milliseconds:1000),curve:Curves.easeOutCubic,builder:(context,t,_)=>CustomPaint(painter:_BarPainter(values,labels,colors,t),child:SizedBox.expand()));
 }
 class _BarPainter extends CustomPainter{
-  _BarPainter(this.values,this.labels,this.colors);final List<int> values;final List<String> labels;final List<Color> colors;
+  _BarPainter(this.values,this.labels,this.colors,this.t);final List<int> values;final List<String> labels;final List<Color> colors;final double t;
   @override void paint(Canvas canvas,Size size){final maxV=values.fold<int>(1,(a,b)=>a>b?a:b).toDouble();final base=size.height-22;final grid=Paint()..color=P.line..strokeWidth=.7;
     for(int i=0;i<4;i++){final y=8+(base-8)*i/3;canvas.drawLine(Offset(4,y),Offset(size.width-4,y),grid);}
-    final slot=(size.width-14)/values.length;for(int i=0;i<values.length;i++){final h=(base-16)*values[i]/maxV;final rect=Rect.fromLTWH(7+slot*i+slot*.23,base-h,slot*.54,h);canvas.drawRRect(RRect.fromRectAndRadius(rect,Radius.circular(3)),Paint()..color=colors[i]);
+    final slot=(size.width-14)/values.length;for(int i=0;i<values.length;i++){final h=(base-16)*values[i]/maxV*t;final rect=Rect.fromLTWH(7+slot*i+slot*.23,base-h,slot*.54,h);canvas.drawRRect(RRect.fromRectAndRadius(rect,Radius.circular(3)),Paint()..color=colors[i]);
       final vt=TextPainter(text:TextSpan(text:'${values[i]}',style:TextStyle(color:P.text,fontSize:10,fontWeight:FontWeight.bold)),textDirection:TextDirection.ltr)..layout();vt.paint(canvas,Offset(7+slot*i+(slot-vt.width)/2,base-h-14));
       final tp=TextPainter(text:TextSpan(text:labels[i],style:TextStyle(color:P.muted2,fontSize:9)),textDirection:TextDirection.ltr)..layout(maxWidth:slot);tp.paint(canvas,Offset(7+slot*i+(slot-tp.width)/2,base+5));}}
   @override bool shouldRepaint(covariant _BarPainter old)=>true;
 }
 class _LineChart extends StatelessWidget{
   const _LineChart(this.values,this.labels,this.color,{this.percent=false});final List<double> values;final List<String> labels;final Color color;final bool percent;
-  @override Widget build(BuildContext context)=>CustomPaint(painter:_LinePainter(values,labels,color,percent),child:SizedBox.expand());
+  @override Widget build(BuildContext context)=>TweenAnimationBuilder<double>(tween:Tween<double>(begin:0,end:1),duration:Duration(milliseconds:1200),curve:Curves.easeInOut,builder:(context,t,_)=>CustomPaint(painter:_LinePainter(values,labels,color,percent,t),child:SizedBox.expand()));
 }
 class _LinePainter extends CustomPainter{
-  _LinePainter(this.values,this.labels,this.color,this.percent);final List<double> values;final List<String> labels;final Color color;final bool percent;
-  @override void paint(Canvas canvas,Size size){if(values.isEmpty)return;final left=percent?30.0:8.0;final right=size.width-8;final top=8.0;final bottom=size.height-24;final maxV=percent?100.0:(values.fold<double>(1,(a,b)=>a>b?a:b));
+  _LinePainter(this.values,this.labels,this.color,this.percent,this.t);final List<double> values;final List<String> labels;final Color color;final bool percent;final double t;
+  @override void paint(Canvas canvas,Size size){if(values.isEmpty)return;canvas.save();canvas.clipRect(Rect.fromLTWH(0,0,size.width*t,size.height));final left=percent?30.0:8.0;final right=size.width-8;final top=8.0;final bottom=size.height-24;final maxV=percent?100.0:(values.fold<double>(1,(a,b)=>a>b?a:b));
     final grid=Paint()..color=P.line..strokeWidth=.7;for(int i=0;i<=4;i++){final y=top+(bottom-top)*i/4;canvas.drawLine(Offset(left,y),Offset(right,y),grid);
       if(percent){final tp=TextPainter(text:TextSpan(text:'${100-i*25}%',style:TextStyle(color:P.muted2,fontSize:8)),textDirection:TextDirection.ltr)..layout();tp.paint(canvas,Offset(0,y-5));}}
     final path=Path();for(int i=0;i<values.length;i++){final x=values.length==1?(left+right)/2:left+(right-left)*i/(values.length-1);final y=bottom-(values[i].clamp(0,maxV)/maxV)*(bottom-top);if(i==0)path.moveTo(x,y);else path.lineTo(x,y);
       final tp=TextPainter(text:TextSpan(text:labels[i],style:TextStyle(color:P.muted2,fontSize:8)),textDirection:TextDirection.ltr)..layout();tp.paint(canvas,Offset(x-tp.width/2,bottom+5));}
     canvas.drawPath(path,Paint()..color=color..style=PaintingStyle.stroke..strokeWidth=2.5..strokeCap=StrokeCap.round);
-    for(int i=0;i<values.length;i++){final x=values.length==1?(left+right)/2:left+(right-left)*i/(values.length-1);final y=bottom-(values[i].clamp(0,maxV)/maxV)*(bottom-top);canvas.drawCircle(Offset(x,y),3,Paint()..color=color);}
+    for(int i=0;i<values.length;i++){final x=values.length==1?(left+right)/2:left+(right-left)*i/(values.length-1);final y=bottom-(values[i].clamp(0,maxV)/maxV)*(bottom-top);canvas.drawCircle(Offset(x,y),3,Paint()..color=color);}canvas.restore();
   }
   @override bool shouldRepaint(covariant _LinePainter old)=>true;
 }
-class _Donut extends StatelessWidget{const _Donut(this.present,this.absent);final int present,absent;@override Widget build(BuildContext context)=>CustomPaint(painter:_DonutPainter(present,absent),child:SizedBox.expand());}
+class _Donut extends StatelessWidget{const _Donut(this.present,this.absent);final int present,absent;@override Widget build(BuildContext context)=>TweenAnimationBuilder<double>(tween:Tween<double>(begin:0,end:1),duration:Duration(milliseconds:1100),curve:Curves.easeOutCubic,builder:(context,t,_)=>CustomPaint(painter:_DonutPainter(present,absent,t),child:SizedBox.expand()));}
 class _DonutPainter extends CustomPainter{
-  _DonutPainter(this.present,this.absent);final int present,absent;
+  _DonutPainter(this.present,this.absent,this.t);final int present,absent;final double t;
   @override void paint(Canvas canvas,Size size){final center=Offset(size.width/2,size.height/2);final radius=size.shortestSide/2-12;final rect=Rect.fromCircle(center:center,radius:radius);final total=present+absent;final p=Paint()..style=PaintingStyle.stroke..strokeWidth=18;
-    canvas.drawArc(rect,-1.5708,6.2832,false,p..color=P.line);if(total>0){canvas.drawArc(rect,-1.5708,6.2832*present/total,false,p..color=Color(0xFF20D69A));canvas.drawArc(rect,-1.5708+6.2832*present/total,6.2832*absent/total,false,p..color=Color(0xFFFF5275));}
+    canvas.drawArc(rect,-1.5708,6.2832,false,p..color=P.line);if(total>0){canvas.drawArc(rect,-1.5708,6.2832*present/total*t,false,p..color=P.ok);canvas.drawArc(rect,-1.5708+6.2832*present/total*t,6.2832*absent/total*t,false,p..color=P.err);}
     final label=total==0?'0%':'${(present/total*100).round()}%';final tp=TextPainter(text:TextSpan(text:label,style:TextStyle(color:P.text,fontSize:19,fontWeight:FontWeight.bold)),textDirection:TextDirection.ltr)..layout();tp.paint(canvas,Offset(center.dx-tp.width/2,center.dy-tp.height/2));}
-  @override bool shouldRepaint(covariant _DonutPainter old)=>old.present!=present||old.absent!=absent;
+  @override bool shouldRepaint(covariant _DonutPainter old)=>old.present!=present||old.absent!=absent||old.t!=t;
 }

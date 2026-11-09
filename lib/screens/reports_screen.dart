@@ -7,6 +7,7 @@ import 'package:excel/excel.dart' as xl show Border, BorderStyle;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/futuristic.dart';
 
 import '../auth/auth_repository.dart';
 import '../database/app_database.dart';
@@ -17,9 +18,9 @@ Color get _bg => P.bg;
 Color get _panel => P.panel;
 Color get _line => P.line;
 Color get _cyan => P.accent;
-const _green = Color(0xFF20D69A);
-const _red = Color(0xFFFF5275);
-const _orange = Color(0xFFFFB323);
+Color get _green => P.ok;
+Color get _red => P.err;
+Color get _orange => P.warn;
 Color get _muted => P.muted;
 
 String _ymd(DateTime d) =>
@@ -520,18 +521,18 @@ class ReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DefaultTabController(
         length: 2,
-        child: Scaffold(
+        child: FScaffold(
           backgroundColor: _bg,
           body: Row(children: [
             AppSidebar(user: user, selected: 'Reportes'),
-            Expanded(
+            FContent(
               child: SafeArea(
                 child: Column(children: [
                   Container(
                     height: 66,
                     padding: EdgeInsets.symmetric(horizontal: 22),
                     child: Row(children: [
-                      Icon(Icons.assessment, color: _cyan, size: 32),
+                      PageIcon(Icons.assessment),
                       SizedBox(width: 12),
                       Text('Reportes', style: TextStyle(color: P.text, fontSize: 22, fontWeight: FontWeight.bold)),
                     ]),
@@ -541,7 +542,8 @@ class ReportsScreen extends StatelessWidget {
                     child: TabBar(
                       isScrollable: true,
                       indicatorColor: _cyan,
-                      labelColor: _cyan,
+                      indicatorWeight: 3,
+                      labelColor: P.text,
                       unselectedLabelColor: _muted,
                       tabs: [
                         Tab(icon: Icon(Icons.person, size: 18), text: 'Informe individual'),
@@ -572,7 +574,7 @@ InputDecoration _dec(String label) => InputDecoration(
 
 Widget _box(String title, IconData icon, Widget child) => Container(
       padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(color: _panel, border: Border.all(color: _line), borderRadius: BorderRadius.circular(13)),
+      decoration: P.card(r: 13),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(children: [
           Icon(icon, color: _cyan, size: 22),
@@ -604,7 +606,7 @@ Widget _estadoChip(String estado) {
   return Container(
     padding: EdgeInsets.symmetric(horizontal: 10, vertical: 3),
     decoration: BoxDecoration(border: Border.all(color: col), borderRadius: BorderRadius.circular(20)),
-    child: Text(txt, style: TextStyle(color: col, fontSize: 11, fontWeight: FontWeight.bold)),
+    child: Text(txt, style: TextStyle(color: P.text, fontSize: 11, fontWeight: FontWeight.bold)),
   );
 }
 
@@ -845,7 +847,7 @@ class _IndividualTabState extends State<_IndividualTab> with AutomaticKeepAliveC
           Icons.person,
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('DNI ${s.dni} · ${s.aula} · Turno ${s.turno} · Periodo ${_ymd(_from)} → ${_ymd(_to)}',
-                style: TextStyle(color: _cyan)),
+                style: TextStyle(color: P.text)),
             SizedBox(height: 14),
             Wrap(spacing: 10, runSpacing: 10, children: [
               _card('${s.esperados}', 'DÍAS ESPERADOS'),
@@ -860,7 +862,7 @@ class _IndividualTabState extends State<_IndividualTab> with AutomaticKeepAliveC
             TextButton.icon(
               onPressed: _export,
               icon: Icon(Icons.table_view, color: _green),
-              label: Text('Exportar a Excel', style: TextStyle(color: _green)),
+              label: Text('Exportar a Excel', style: TextStyle(color: P.text)),
             ),
             if (s.dias.isEmpty)
               Padding(
@@ -880,7 +882,7 @@ class _IndividualTabState extends State<_IndividualTab> with AutomaticKeepAliveC
                           ? Container(
                               padding: EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                               decoration: BoxDecoration(border: Border.all(color: _orange), borderRadius: BorderRadius.circular(20)),
-                              child: Text('SALIDA PENDIENTE', style: TextStyle(color: _orange, fontSize: 11, fontWeight: FontWeight.bold)),
+                              child: Text('SALIDA PENDIENTE', style: TextStyle(color: P.text, fontSize: 11, fontWeight: FontWeight.bold)),
                             )
                           : _estadoChip(d.estado),
                       Text('${d.registros}'),
@@ -1065,7 +1067,7 @@ class _GeneralTabState extends State<_GeneralTab> with AutomaticKeepAliveClientM
           'Reporte general',
           Icons.groups,
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('${_ymd(_from)} → ${_ymd(_to)} · ${list.length} estudiantes', style: TextStyle(color: _cyan)),
+            Text('${_ymd(_from)} → ${_ymd(_to)} · ${list.length} estudiantes', style: TextStyle(color: P.text)),
             SizedBox(height: 14),
             Wrap(spacing: 10, runSpacing: 10, children: [
               _card('${_sum((s) => s.presentes)}', 'ASISTENCIAS', _green),
@@ -1080,7 +1082,7 @@ class _GeneralTabState extends State<_GeneralTab> with AutomaticKeepAliveClientM
             TextButton.icon(
               onPressed: list.isEmpty ? null : _export,
               icon: Icon(Icons.table_view, color: _green),
-              label: Text('Exportar a Excel', style: TextStyle(color: _green)),
+              label: Text('Exportar a Excel', style: TextStyle(color: P.text)),
             ),
             if (list.isEmpty)
               Padding(padding: EdgeInsets.all(12), child: Text('No hay estudiantes con ese filtro.', style: TextStyle(color: _muted)))

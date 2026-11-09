@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/futuristic.dart';
 
 import '../auth/auth_repository.dart';
 import '../database/app_database.dart';
@@ -27,7 +28,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
   static Color get line => P.line;
   static Color get cyan => P.accent;
   static Color get purple => P.accent;
-  static const red = Color(0xFFFF5275);
+  static Color get red => P.err;
   static Color get muted => P.muted;
   static Color get fieldBg => P.field;
 
@@ -248,7 +249,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
         color: panel,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: line),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(.35), blurRadius: 24, offset: Offset(0, 10))],
+        boxShadow: P.shadow,
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -283,24 +284,28 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
             SizedBox(height: 18),
             for (final f in _fields) _timeField(turno, f.$1, f.$2),
             SizedBox(height: 6),
-            InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: busy ? null : () => _save(turno),
-              child: Ink(
-                height: 56,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  gradient: LinearGradient(colors: [purple, P.accent2]),
-                ),
-                child: Center(
-                  child: busy
-                      ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 3, color: P.onAccent))
-                      : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Icon(Icons.save, color: cyan, size: 26),
-                          SizedBox(width: 6),
-                          Text('Guardar turno ${turno.toLowerCase()}',
-                              style: TextStyle(color: P.onAccent, fontSize: 16, fontWeight: FontWeight.bold)),
-                        ]),
+            Container(
+              height: 56,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: P.brand,
+                boxShadow: [BoxShadow(color: P.accent.withValues(alpha: .30), blurRadius: 14, offset: Offset(0, 5))],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: busy ? null : () => _save(turno),
+                  child: Center(
+                    child: busy
+                        ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 3, color: P.onBrand))
+                        : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            Icon(Icons.save, color: P.onBrand, size: 24),
+                            SizedBox(width: 8),
+                            Text('Guardar turno ${turno.toLowerCase()}',
+                                style: TextStyle(color: P.onBrand, fontSize: 16, fontWeight: FontWeight.w800)),
+                          ]),
+                  ),
                 ),
               ),
             ),
@@ -311,18 +316,18 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => FScaffold(
         backgroundColor: bg,
         body: Row(children: [
           AppSidebar(user: widget.user, selected: 'Horarios'),
-          Expanded(
+          FContent(
             child: SafeArea(
               child: Column(children: [
                 Container(
                   height: 66,
                   padding: EdgeInsets.symmetric(horizontal: 22),
                   child: Row(children: [
-                    Icon(Icons.schedule, color: cyan, size: 32),
+                    PageIcon(Icons.schedule),
                     SizedBox(width: 12),
                     Text('Horarios', style: TextStyle(color: P.text, fontSize: 22, fontWeight: FontWeight.bold)),
                   ]),
@@ -344,7 +349,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                                 child: OutlinedButton.icon(
                                   onPressed: _addTurno,
                                   icon: Icon(Icons.add, color: cyan),
-                                  label: Text('Agregar turno', style: TextStyle(color: cyan, fontWeight: FontWeight.bold)),
+                                  label: Text('Agregar turno', style: TextStyle(color: P.text, fontWeight: FontWeight.bold)),
                                   style: OutlinedButton.styleFrom(side: BorderSide(color: cyan), minimumSize: Size(170, 44)),
                                 ),
                               ),

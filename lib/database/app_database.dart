@@ -18,7 +18,7 @@ class AppDatabase {
     _database = await databaseFactoryFfi.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 5,
+        version: 6,
         onCreate: (db, version) async {
           await db.execute('''
             CREATE TABLE usuarios (
@@ -32,6 +32,7 @@ class AppDatabase {
               activo INTEGER NOT NULL DEFAULT 1,
               recovery_failed_attempts INTEGER NOT NULL DEFAULT 0,
               recovery_locked_until TEXT,
+              permisos TEXT,
               fecha_registro TEXT NOT NULL
             )
           ''');
@@ -51,6 +52,7 @@ class AppDatabase {
           }
           if (oldVersion < 4) await _migrateV4(db);
           if (oldVersion < 5) await _migrateV5(db);
+          if (oldVersion < 6) await _migrateV6(db);
         },
       ),
     );
@@ -135,6 +137,14 @@ class AppDatabase {
       await db.execute('INSERT INTO asistencias SELECT id, alumno_id, fecha, hora, estado, tipo, observacion, usuario_id, hora_salida, salida_tipo, motivo FROM asistencias_old');
       await db.execute('DROP TABLE asistencias_old');
     }
+  }
+
+  /// v6: permisos por usuario. El personal que ya existía conserva lo que veía
+  /// antes (Escanear QR y Registro manual); el administrador puede cambiarlo.
+  Future<void> _migrateV6(DatabaseExecutor db) async {
+    await _addColumnIfMissing(db, 'usuarios', 'permisos', 'TEXT');
+    await db.update('usuarios', {'permisos': 'Escanear QR,Registro manual'},
+        where: "rol='personal' AND permisos IS NULL");
   }
 
   static int _toMin(String s) {
