@@ -12,9 +12,7 @@ class AppDatabase {
     if (_database != null) return _database!;
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
-    final base = await databaseFactory.getDatabasesPath();
-    final path = p.join(base, 'gestor_asistencias', 'gestor_asistencias.db');
-    await Directory(p.dirname(path)).create(recursive: true);
+    final path = await _resolveDbPath();
     _database = await databaseFactoryFfi.openDatabase(
       path,
       options: OpenDatabaseOptions(
@@ -57,6 +55,29 @@ class AppDatabase {
       ),
     );
     return _database!;
+  }
+
+  /// La base de datos va en una carpeta del usuario (%LOCALAPPDATA%\SZR Asistencias),
+  /// que siempre tiene permiso de escritura. Si el programa está instalado en
+  /// "Program Files", la carpeta del programa es de solo lectura y no sirve.
+  /// Si ya existía una base en la ubicación anterior, se copia la primera vez.
+  Future<String> _resolveDbPath() async {
+    final legacyBase = await databaseFactory.getDatabasesPath();
+    final legacy = p.join(legacyBase, 'gestor_asistencias', 'gestor_asistencias.db');
+    final root = Platform.environment['LOCALAPPDATA'] ?? Platform.environment['APPDATA'];
+    if (root == null || root.isEmpty) {
+      await Directory(p.dirname(legacy)).create(recursive: true);
+      return legacy;
+    }
+    final dir = p.join(root, 'SZR Asistencias');
+    final path = p.join(dir, 'gestor_asistencias.db');
+    await Directory(dir).create(recursive: true);
+    if (!await File(path).exists() && await File(legacy).exists()) {
+      try {
+        await File(legacy).copy(path);
+      } catch (_) {}
+    }
+    return path;
   }
 
   Future<void> _createSchoolTables(DatabaseExecutor db) async {
